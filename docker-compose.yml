@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: jewelry
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: ./server
+    depends_on: [db]
+    environment:
+      DATABASE_URL: postgresql+psycopg://app:app@db:5432/jewelry
+      SECRET_KEY: 673ed479ccdd74d318084b83e35fbf6da37c55e994dfdfbe6942a2014a1454a4
+    ports: ["8000:8000"]
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./server:/app
+
+volumes:
+  pgdata:
