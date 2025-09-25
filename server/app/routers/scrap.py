@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.db import get_db
-from app import models
+# from app.db import get_db
+# from app import models
+from ..db import get_db
+from .. import models
 
 router = APIRouter(prefix="/scrap", tags=["Scrap"])
 
@@ -17,3 +19,4 @@ def get_scrap_reserves(db: Session = Depends(get_db)):
         }
         for r in reserves
     ]
+
