@@ -68,3 +68,83 @@ def transit_summary(
         "rows": data,
         "overall_total": overall_total,
     }
+
+@router.get("/transit/trees")
+def transit_trees(
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    metal: str = Query(...),  # exact metal name required for drill-down
+    db: Session = Depends(get_db),
+):
+    t = models.Tree
+    m = models.Metal
+    q = (
+        select(
+            t.id.label("tree_id"),
+            t.date, t.tree_no, t.tree_weight, t.est_metal_weight,
+            m.name.label("metal_name"),
+        )
+        .join(m, m.id == t.metal_id)
+        .where(t.status == models.TreeStatus.transit, m.name == metal)
+        .order_by(t.date.desc(), t.tree_no.asc())
+    )
+    if date_from:
+        q = q.where(t.date >= date_from)
+    if date_to:
+        q = q.where(t.date <= date_to)
+
+    rows = db.execute(q).all()
+    return [{
+        "tree_id": r.tree_id,
+        "date": r.date.isoformat(),
+        "tree_no": r.tree_no,
+        "metal_name": r.metal_name,
+        "tree_weight": float(r.tree_weight) if r.tree_weight is not None else None,
+        "est_metal_weight": float(r.est_metal_weight) if r.est_metal_weight is not None else None,
+    } for r in rows]
+
+@router.get("/scrap_loss")
+def scrap_loss(
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    metal: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    c = models.Cutting
+    f = models.Flask
+    m = models.Metal
+
+    q = (
+        select(
+            c.id,
+            f.date,
+            f.flask_no,
+            m.name.label("metal_name"),
+            c.before_cut_A, c.after_casting_C, c.after_scrap_B, c.loss,
+        )
+        .join(f, f.id == c.flask_id)
+        .join(m, m.id == f.metal_id)
+        .where(f.status == models.Stage.done)                      # <-- only confirmed (Recon -> Done)
+        .order_by(f.date.desc(), m.name.asc(), f.flask_no.asc())
+    )
+    if date_from:
+        q = q.where(f.date >= date_from)
+    if date_to:
+        q = q.where(f.date <= date_to)
+    if metal and metal != "All":
+        q = q.where(m.name == metal)
+
+    rows = db.execute(q).all()
+    out = []
+    for r in rows:
+        out.append({
+            "id": r.id,
+            "date": r.date.isoformat() if r.date else None,
+            "flask_no": r.flask_no,
+            "metal_name": r.metal_name,
+            "before_cut_A": float(r.before_cut_A) if r.before_cut_A is not None else 0.0,
+            "after_casting_C": float(r.after_casting_C) if r.after_casting_C is not None else 0.0,
+            "after_scrap_B": float(r.after_scrap_B) if r.after_scrap_B is not None else 0.0,
+            "loss": float(r.loss) if r.loss is not None else 0.0,
+        })
+    return out

@@ -49,9 +49,9 @@ def calc_alloy_for(metal_name: str, total_metal: float):
     if "10" in metal_name.upper(): 
         factor = 0.417 
     elif "14" in metal_name.upper():
-        factor = 0.585
+        factor = 0.587
     elif "18" in metal_name.upper():
-        factor = 0.75
+        factor = 0.752
     elif "PLATINUM" in metal_name.upper():
         factor = 1
     elif "SILVER" in metal_name.upper():
