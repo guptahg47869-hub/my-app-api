@@ -19,8 +19,10 @@ except Exception:
     pass
 
 # Optional: last-resort default for local dev if .env wasn't found
-os.environ.setdefault("DATABASE_URL", "postgresql://jewelry_db_0xb1_user:Q12QnalVgyvo2zy7cFf3Y1O7EbzGh2xl@dpg-d3ajdabipnbc739ljt1g-a/jewelry_db_0xb1")
+#os.environ.setdefault("DATABASE_URL", "postgresql://jewelry_db_0xb1_user:Q12QnalVgyvo2zy7cFf3Y1O7EbzGh2xl@dpg-d3ajdabipnbc739ljt1g-a/jewelry_db_0xb1")
 #os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://app:app@localhost:5432/jewelry")
+os.environ.setdefault("DATABASE_URL", "postgresql://myappuser:Q12QnalVgyvo2zy7cFf3Y1O7EbzGh2xl@jewelry-db.chxr8lm2qqd6.eu-north-1.rds.amazonaws.com:5432/jewelry-db")
+
 
 print("DATABASE_URL seen by reset_db.py =>", os.getenv("DATABASE_URL"))
 
@@ -36,5 +38,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
